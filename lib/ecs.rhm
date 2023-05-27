@@ -278,20 +278,28 @@ fun test():
     [_Position.get_data(e1), _Position.get_data(e2), _Position.get_data(e3)]
     ~is ["hello ", "world", "!!!"]
   
+space.transform component:
+  space_path in_the_rough/component
+  bridge_definer bridge
+  meta_namespace component_meta:
+    reflection space
+
 defn.macro
 | 'component $(name :: Identifier)($field_name :: $ty, ...)':
-    '«namespace $name:
-        export: _component _class
-        def _component: Component($(to_string(name)))
-        class _class(mutable $field_name :: $ty, ...)
-      annot.macro '$name': '$(name) . _class'
+    '«namespace fresh: // the name `fresh` is macro-introduced, so hidden
+        export: component class
+        def key = $(to_string(name)) // Symbol.gen() might be better here
+        def component: Component(key)
+        class class(mutable $field_name :: $ty, ...)
+      annot.macro '$name': 'fresh.class'
+      component.bridge $name: 'fresh.component'
       fun
-      | $name($field_name :: $ty, ...) : [$(name) . _component, $(name) . _class($field_name, ...)]
-      | $name(): [$(name) . _component]»'
+      | $name($field_name :: $ty, ...) : [fresh.component, fresh.class($field_name, ...)]
+      | $name(): [fresh.component]»'
 
 expr.macro
 | 'name_to_component_value($(name :: Name))':
-   '$(name) . _component'
+    syntax_meta.value(name, component_meta.space)
 
 expr.macro
 | 'system_defs($name, [[$component_name, $component], ...], [$body, ...])':
