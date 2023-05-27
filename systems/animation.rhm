@@ -7,14 +7,14 @@ import:
   "../lib/ecs.rhm" open
   "../lib/lang.rhm" open
 
-  "../components/graphics.rhm" open
+  "../components/graphics.rhm"
 
 export:
   AnimationSystem
 
 use_static
 
-system AnimationSystem(anim :: AnimatedSprite) with this:
+system AnimationSystem(anim :: graphics.AnimatedSprite) with this:
   method update():
     when (anim.moving):
       def current_time : raylib.GetTime()
